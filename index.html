@@ -129,7 +129,8 @@
       place-items: center;
       pointer-events: none;
       opacity: 0;
-      perspective: 900px;
+      perspective: 820px;
+      perspective-origin: 50% 42%;
       transition: opacity 320ms ease;
     }
 
@@ -149,70 +150,48 @@
     }
 
     .intro-cube-scene {
-      --cube-depth: clamp(54px, 11vmin, 84px);
+      --cube-size: clamp(154px, 36vmin, 212px);
       position: relative;
-      width: 58%;
-      aspect-ratio: 1;
+      width: var(--cube-size);
+      height: var(--cube-size);
       transform-style: preserve-3d;
-      filter: drop-shadow(0 28px 38px rgba(33, 24, 80, .2));
-      animation: introCubeScene 1120ms cubic-bezier(.2, .76, .18, 1) forwards;
+      filter: drop-shadow(0 28px 30px rgba(38, 25, 87, .2));
+      animation: introCubeScene 1480ms cubic-bezier(.2, .76, .18, 1) forwards;
+      will-change: transform;
     }
 
     .intro-cube {
       position: absolute;
-      inset: 11%;
-      transform-style: preserve-3d;
-      transform: rotateX(-18deg) rotateY(-34deg) rotateZ(30deg);
-      animation: introCubeSpin 1120ms cubic-bezier(.2, .76, .18, 1) forwards;
-    }
-
-    .intro-cube__face {
-      position: absolute;
       inset: 0;
-      border-radius: 24px;
-      background: linear-gradient(145deg, #b27fe8 12%, #8080ff 92%);
-      backface-visibility: hidden;
-      overflow: hidden;
+      width: var(--cube-size);
+      height: var(--cube-size);
+      transform-style: preserve-3d;
+      transform-origin: 50% 50%;
+      transform: rotateX(0deg) rotateY(0deg);
+      animation: introCubeSpin 1480ms cubic-bezier(.26, .78, .18, 1) forwards;
+      will-change: transform;
     }
 
-    .intro-cube__face::after {
+    .intro-cube::before {
       content: "";
       position: absolute;
+      inset: 15%;
+      border-radius: 30%;
+      background: linear-gradient(135deg, rgba(186, 129, 240, .7), rgba(78, 58, 159, .55));
+      filter: blur(14px);
+      transform: translateZ(-18px) translateY(16px);
+    }
+
+    .intro-cube-art {
+      display: block;
+      position: absolute;
       inset: 0;
-      background:
-        radial-gradient(circle at 28% 18%, rgba(255, 191, 255, .72), transparent 38%),
-        linear-gradient(155deg, rgba(255, 255, 255, .24), transparent 42%);
-      mix-blend-mode: overlay;
-    }
-
-    .intro-cube__face--front {
-      transform: translateZ(var(--cube-depth));
-      background: linear-gradient(145deg, #b27fe8 6%, #8080ff 88%);
-    }
-
-    .intro-cube__face--right {
-      transform: rotateY(90deg) translateZ(var(--cube-depth));
-      background: linear-gradient(140deg, #8f73f2 8%, #5f4db1 94%);
-    }
-
-    .intro-cube__face--top {
-      transform: rotateX(90deg) translateZ(var(--cube-depth));
-      background: linear-gradient(155deg, #d89aff 8%, #9181ff 88%);
-    }
-
-    .intro-cube__face--left {
-      transform: rotateY(-90deg) translateZ(var(--cube-depth));
-      background: linear-gradient(145deg, #9c74df 8%, #705bc8 92%);
-    }
-
-    .intro-cube__face--bottom {
-      transform: rotateX(-90deg) translateZ(var(--cube-depth));
-      background: linear-gradient(155deg, #7c62ca 8%, #5f4db1 92%);
-    }
-
-    .intro-cube__face--back {
-      transform: rotateY(180deg) translateZ(var(--cube-depth));
-      background: linear-gradient(145deg, #8c70e8 8%, #6c5be0 92%);
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      transform: translateZ(22px);
+      transform-origin: center;
+      backface-visibility: hidden;
     }
 
     .character[data-intro="active"] .logo,
@@ -308,29 +287,29 @@
 
     @keyframes introCubeScene {
       0% {
-        transform: scale(.9);
+        transform: scale(.86) translateY(2px);
       }
 
-      55% {
-        transform: scale(1.03);
+      44% {
+        transform: scale(1.05) translateY(-2px);
       }
 
       100% {
-        transform: scale(1);
+        transform: scale(.96) translateY(0);
       }
     }
 
     @keyframes introCubeSpin {
       0% {
-        transform: rotateX(-22deg) rotateY(-42deg) rotateZ(32deg);
+        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
       }
 
-      55% {
-        transform: rotateX(-12deg) rotateY(32deg) rotateZ(28deg);
+      50% {
+        transform: rotateX(0deg) rotateY(180deg) rotateZ(0deg);
       }
 
       100% {
-        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+        transform: rotateX(0deg) rotateY(360deg) rotateZ(0deg);
       }
     }
 
@@ -430,12 +409,44 @@
     const INTRO_CUBE_MARKUP = `
       <div class="intro-cube-scene">
         <div class="intro-cube">
-          <span class="intro-cube__face intro-cube__face--front"></span>
-          <span class="intro-cube__face intro-cube__face--right"></span>
-          <span class="intro-cube__face intro-cube__face--top"></span>
-          <span class="intro-cube__face intro-cube__face--left"></span>
-          <span class="intro-cube__face intro-cube__face--bottom"></span>
-          <span class="intro-cube__face intro-cube__face--back"></span>
+          <svg class="intro-cube-art" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M60 19.7885C77.5692 9.64492 86.3538 4.57313 96 4.57313C105.646 4.57313 114.431 9.64493 132 19.7885L144 26.7167C161.569 36.8603 170.354 41.9321 175.177 50.2859C180 58.6398 180 68.7834 180 89.0705V102.927C180 123.214 180 133.358 175.177 141.712C170.354 150.065 161.569 155.137 144 165.281L132 172.209C114.431 182.353 105.646 187.424 96 187.424C86.3538 187.424 77.5692 182.353 60 172.209L48 165.281C30.4308 155.137 21.6462 150.065 16.8231 141.712C12 133.358 12 123.214 12 102.927V89.0706C12 68.7834 12 58.6398 16.8231 50.2859C21.6462 41.9321 30.4308 36.8603 48 26.7167L60 19.7885Z" fill="url(#intro-cube-main)"/>
+            <mask id="intro-cube-mask" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="12" y="4" width="168" height="184">
+              <path d="M60 19.7885C77.5692 9.64492 86.3538 4.57313 96 4.57313C105.646 4.57313 114.431 9.64493 132 19.7885L144 26.7167C161.569 36.8603 170.354 41.9321 175.177 50.2859C180 58.6398 180 68.7834 180 89.0705V102.927C180 123.214 180 133.358 175.177 141.712C170.354 150.065 161.569 155.137 144 165.281L132 172.209C114.431 182.353 105.646 187.424 96 187.424C86.3538 187.424 77.5692 182.353 60 172.209L48 165.281C30.4308 155.137 21.6462 150.065 16.8231 141.712C12 133.358 12 123.214 12 102.927V89.0706C12 68.7834 12 58.6398 16.8231 50.2859C21.6462 41.9321 30.4308 36.8603 48 26.7167L60 19.7885Z" fill="#B27FE8"/>
+            </mask>
+            <g mask="url(#intro-cube-mask)">
+              <g opacity=".58" filter="url(#intro-cube-top-blur)">
+                <path d="M60 75.6089C77.5692 85.7525 86.3538 90.8243 96 90.8243C105.646 90.8243 114.431 85.7525 132 75.6089L144.33 68.4904C160.201 59.3269 168.137 54.7451 168.165 47.8489C168.192 40.9526 160.293 36.3076 144.495 27.0177L132.497 19.962C114.699 9.49621 105.8 4.26332 96 4.26332C86.1996 4.26332 77.3008 9.49622 59.5033 19.962L47.5048 27.0177C31.7068 36.3076 23.8077 40.9526 23.8353 47.8489C23.8628 54.7451 31.7987 59.3269 47.6704 68.4904L60 75.6089Z" fill="url(#intro-cube-top)" style="mix-blend-mode:overlay"/>
+              </g>
+              <g opacity=".46" filter="url(#intro-cube-side-blur)">
+                <path d="M95.3741 137.225C95.6798 117.283 95.8326 107.312 100.645 99.1226C105.457 90.9333 114.093 85.9472 131.366 75.9749L144 68.6804C160 59.4428 168 54.824 174 58.2881C180 61.7523 180 70.9899 180 89.4651V102.802C180 122.915 180 132.972 175.246 141.28C170.493 149.588 161.822 154.683 144.482 164.875L131.312 172.615C115.006 182.198 106.853 186.99 100.786 183.456C94.7196 179.923 94.8646 170.467 95.1544 151.556L95.3741 137.225Z" fill="url(#intro-cube-side)" style="mix-blend-mode:overlay"/>
+              </g>
+            </g>
+            <defs>
+              <filter id="intro-cube-top-blur" x="14.8359" y="-4.73633" width="162.328" height="104.561" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                <feGaussianBlur stdDeviation="4.5" result="effect1_foregroundBlur"/>
+              </filter>
+              <filter id="intro-cube-side-blur" x="86.0469" y="48.1377" width="102.953" height="145.479" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                <feGaussianBlur stdDeviation="4.5" result="effect1_foregroundBlur"/>
+              </filter>
+              <linearGradient id="intro-cube-main" x1="54.8282" y1="169.836" x2="137.25" y2="23.998" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#B27FE8"/>
+                <stop offset="1" stop-color="#8080FF"/>
+              </linearGradient>
+              <linearGradient id="intro-cube-top" x1="180" y1="47.4469" x2="12" y2="47.4469" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#FF80DF"/>
+                <stop offset="1" stop-color="#FFBFFF"/>
+              </linearGradient>
+              <linearGradient id="intro-cube-side" x1="108.75" y1="103.5" x2="173.25" y2="137.25" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#7860BF"/>
+                <stop offset="1" stop-color="#000040"/>
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
       </div>
     `;
@@ -1071,7 +1082,7 @@
 
       window.setTimeout(() => {
         animateIntroMorph(finishIntro);
-      }, 1120);
+      }, 1480);
     };
 
     window.addEventListener('pointermove', (event) => {
