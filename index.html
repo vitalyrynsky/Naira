@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Naira Emotions</title>
+  <style>
+    :root {
+      --page: #ffffff;
+      --ink: #0e1624;
+      --text: #111111;
+      --muted: #6c7384;
+      --panel: #ffffff;
+      --panel-border: rgba(14, 22, 36, 0.08);
+      --panel-shadow: 0 14px 32px rgba(14, 22, 36, 0.08);
+      --panel-shadow-active: 0 20px 38px rgba(14, 22, 36, 0.14);
+      --focus: rgba(86, 62, 214, 0.42);
+      --glow: rgba(128, 128, 255, 0.52);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      padding: 24px 16px 20px;
+    }
+
+    .hero {
+      width: 100%;
+      flex: 1 0 auto;
+      display: grid;
+      place-items: center;
+      min-height: min(66vh, 620px);
+    }
+
+    .stage {
+      position: relative;
+      width: min(54vmin, 372px);
+      min-width: 240px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .character {
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      --blink: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: default;
+      transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+      transition: transform 180ms ease-out;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .character:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 12px;
+      border-radius: 32px;
+    }
+
+    .spark {
+      position: absolute;
+      inset: 14%;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--glow) 0 14%, transparent 66%);
+      opacity: .7;
+      transform: scale(.82);
+      filter: blur(22px);
+      z-index: -1;
+      transition: background 260ms ease;
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .logo {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 24px 42px rgba(33, 24, 80, 0.14));
+    }
+
+    .hex-layer {
+      transition: opacity 260ms ease;
+    }
+
+    .face {
+      fill: var(--ink);
+    }
+
+    .marks {
+      transform-box: fill-box;
+      transform-origin: center center;
+      transform: scaleY(var(--blink));
+      transition: transform 120ms ease;
+    }
+
+    .selector {
+      width: min(960px, 100%);
+      display: flex;
+      justify-content: center;
+    }
+
+    .emotion-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 12px;
+    }
+
+    .emotion-chip {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      padding: 14px 10px 12px;
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: var(--panel-shadow);
+      color: var(--text);
+      cursor: pointer;
+      transition:
+        transform 160ms ease,
+        box-shadow 160ms ease,
+        border-color 160ms ease,
+        background 160ms ease;
+    }
+
+    .emotion-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--panel-shadow-active);
+    }
+
+    .emotion-chip:focus-visible {
+      outline: 3px solid var(--chip-focus, var(--focus));
+      outline-offset: 3px;
+    }
+
+    .emotion-chip[aria-pressed="true"] {
+      box-shadow: var(--panel-shadow-active);
+      border-color: var(--chip-border, rgba(86, 62, 214, 0.22));
+      background: var(--chip-bg, rgba(86, 62, 214, 0.06));
+    }
+
+    .emotion-chip__icon {
+      width: 80px;
+      height: 80px;
+      display: grid;
+      place-items: center;
+    }
+
+    .emotion-chip__icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .emotion-chip__label {
+      font-size: 15px;
+      line-height: 1.15;
+      font-weight: 500;
+      letter-spacing: -.01em;
+      text-align: center;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        transform: scale(.82);
+        opacity: .54;
+      }
+
+      50% {
+        transform: scale(1);
+        opacity: .82;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        justify-content: flex-start;
+        gap: 20px;
+        padding-top: 20px;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+
+      .stage {
+        width: min(78vw, 340px);
+      }
+
+      .emotion-grid {
+        grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+        gap: 10px;
+      }
+
+      .emotion-chip {
+        padding: 12px 8px 10px;
+        border-radius: 20px;
+      }
+
+      .emotion-chip__icon {
+        width: 68px;
+        height: 68px;
+      }
+
+      .emotion-chip__label {
+        font-size: 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .character,
+      .spark,
+      .emotion-chip,
+      .hex-layer,
+      .marks {
+        animation: none;
+        transition-duration: 1ms;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <main class="stage" aria-label="Интерактивный персонаж Naira">
+        <button class="character" type="button" aria-label="Naira">
+          <span class="spark" aria-hidden="true"></span>
+          <svg class="logo" viewBox="0 0 192 192" role="img" aria-hidden="true">
+            <defs>
+              <linearGradient id="grad-purple-blue" x1="54.8282" y1="169.838" x2="137.25" y2="23.9999" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#B27FE8"/>
+                <stop offset="1" stop-color="#8080FF"/>
+              </linearGradient>
+              <linearGradient id="grad-welcome" x1="54.8282" y1="169.838" x2="137.25" y2="23.9999" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#B27FE8"/>
+                <stop offset="1" stop-color="#00CCAA"/>
+              </linearGradient>
+              <linearGradient id="grad-warning" x1="54.8282" y1="169.838" x2="137.25" y2="23.9999" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#FF3333"/>
+                <stop offset="1" stop-color="#B27FE8"/>
+              </linearGradient>
+              <linearGradient id="grad-sorry" x1="54.8282" y1="169.838" x2="137.25" y2="23.9999" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#FF80BF"/>
+                <stop offset="1" stop-color="#B27FE8"/>
+              </linearGradient>
+            </defs>
+            <path id="hex-a" class="hex-layer" d="M60 19.7905C77.5692 9.64688 86.3538 4.57508 96 4.57508C105.646 4.57508 114.431 9.64688 132 19.7905L144 26.7187C161.569 36.8623 170.354 41.9341 175.177 50.2879C180 58.6417 180 68.7853 180 89.0725V102.929C180 123.216 180 133.36 175.177 141.714C170.354 150.067 161.569 155.139 144 165.283L132 172.211C114.431 182.355 105.646 187.426 96 187.426C86.3538 187.426 77.5692 182.355 60 172.211L48 165.283C30.4308 155.139 21.6462 150.067 16.8231 141.714C12 133.36 12 123.216 12 102.929V89.0725C12 68.7853 12 58.6417 16.8231 50.2879C21.6462 41.9341 30.4308 36.8623 48 26.7187L60 19.7905Z" fill="url(#grad-purple-blue)"/>
+            <path id="hex-b" class="hex-layer" d="M60 19.7905C77.5692 9.64688 86.3538 4.57508 96 4.57508C105.646 4.57508 114.431 9.64688 132 19.7905L144 26.7187C161.569 36.8623 170.354 41.9341 175.177 50.2879C180 58.6417 180 68.7853 180 89.0725V102.929C180 123.216 180 133.36 175.177 141.714C170.354 150.067 161.569 155.139 144 165.283L132 172.211C114.431 182.355 105.646 187.426 96 187.426C86.3538 187.426 77.5692 182.355 60 172.211L48 165.283C30.4308 155.139 21.6462 150.067 16.8231 141.714C12 133.36 12 123.216 12 102.929V89.0725C12 68.7853 12 58.6417 16.8231 50.2879C21.6462 41.9341 30.4308 36.8623 48 26.7187L60 19.7905Z" fill="url(#grad-purple-blue)" opacity="0"/>
+            <path id="face-path" class="face" d=""></path>
+            <g id="marks-group" class="marks">
+              <path id="mark-a" fill="white" d=""></path>
+              <path id="mark-b" fill="white" d=""></path>
+            </g>
+          </svg>
+        </button>
+      </main>
+    </section>
+
+    <nav class="selector" aria-label="Переключатель эмоций Naira">
+      <div id="emotion-grid" class="emotion-grid"></div>
+    </nav>
+  </div>
+
+  <script>
+    const HEX_PATH = 'M60 19.7905C77.5692 9.64688 86.3538 4.57508 96 4.57508C105.646 4.57508 114.431 9.64688 132 19.7905L144 26.7187C161.569 36.8623 170.354 41.9341 175.177 50.2879C180 58.6417 180 68.7853 180 89.0725V102.929C180 123.216 180 133.36 175.177 141.714C170.354 150.067 161.569 155.139 144 165.283L132 172.211C114.431 182.355 105.646 187.426 96 187.426C86.3538 187.426 77.5692 182.355 60 172.211L48 165.283C30.4308 155.139 21.6462 150.067 16.8231 141.714C12 133.36 12 123.216 12 102.929V89.0725C12 68.7853 12 58.6417 16.8231 50.2879C21.6462 41.9341 30.4308 36.8623 48 26.7187L60 19.7905Z';
+    const EMPTY_PATH = 'M96 96L96.001 96L96.001 96.001L96 96.001Z';
+
+    const FILL_PRESETS = {
+      purpleBlue: {
+        fill: 'url(#grad-purple-blue)',
+        glow: 'rgba(128, 128, 255, 0.56)',
+        chipBorder: 'rgba(122, 126, 255, 0.28)',
+        chipBg: 'rgba(128, 128, 255, 0.08)',
+        chipFocus: 'rgba(128, 128, 255, 0.34)',
+        preview: { from: '#B27FE8', to: '#8080FF' }
+      },
+      welcome: {
+        fill: 'url(#grad-welcome)',
+        glow: 'rgba(0, 204, 170, 0.52)',
+        chipBorder: 'rgba(0, 204, 170, 0.26)',
+        chipBg: 'rgba(0, 204, 170, 0.08)',
+        chipFocus: 'rgba(0, 204, 170, 0.34)',
+        preview: { from: '#B27FE8', to: '#00CCAA' }
+      },
+      warning: {
+        fill: 'url(#grad-warning)',
+        glow: 'rgba(255, 86, 86, 0.56)',
+        chipBorder: 'rgba(255, 86, 86, 0.28)',
+        chipBg: 'rgba(255, 86, 86, 0.08)',
+        chipFocus: 'rgba(255, 86, 86, 0.34)',
+        preview: { from: '#FF3333', to: '#B27FE8' }
+      },
+      sorry: {
+        fill: 'url(#grad-sorry)',
+        glow: 'rgba(255, 128, 191, 0.56)',
+        chipBorder: 'rgba(255, 128, 191, 0.28)',
+        chipBg: 'rgba(255, 128, 191, 0.08)',
+        chipFocus: 'rgba(255, 128, 191, 0.34)',
+        preview: { from: '#FF80BF', to: '#B27FE8' }
+      }
+    };
+
+    const RAW_EMOTIONS = {
+      sleep: {
+        label: 'Спит',
+        fillId: 'purpleBlue',
+        blinkable: true,
+        looks: {
+          left: {
+            face: 'M48 54.4316C36.6863 54.4316 31.0294 54.4316 27.5147 57.9464C24 61.4611 24 67.1179 24 78.4316V101.924C24 119.321 24 128.019 28.1358 135.182C32.2716 142.346 39.8044 146.695 54.87 155.393L75.2154 167.139C85.0133 172.796 89.9123 175.625 94.7135 174.338C99.5147 173.052 102.343 168.153 108 158.355L157.608 72.4316C162.226 64.4316 164.536 60.4316 162.804 57.4316C161.072 54.4316 156.453 54.4316 147.215 54.4316H48Z',
+            marks: ['M120 84H90C86.6863 84 84 86.6863 84 90V90C84 93.3137 86.6863 96 90 96H120V84Z', 'M72 90C72 86.6863 69.3137 84 66 84H36V96H66C69.3137 96 72 93.3137 72 90V90Z']
+          },
+          straight: {
+            face: 'M144 54.4316C155.314 54.4316 160.971 54.4316 164.485 57.9464C168 61.4611 168 67.1179 168 78.4316V101.939C168 119.328 168 128.023 163.866 135.183C159.732 142.344 152.202 146.691 137.143 155.385L126.857 161.324C111.798 170.018 104.268 174.366 96 174.366C87.7319 174.366 80.2022 170.018 65.1429 161.324L54.8572 155.385C39.7978 146.691 32.2681 142.344 28.1341 135.183C24 128.023 24 119.328 24 101.939V78.4316C24 67.1179 24 61.4611 27.5147 57.9464C31.0294 54.4316 36.6863 54.4316 48 54.4316H144Z',
+            marks: ['M138 84H108C104.686 84 102 86.6863 102 90V90C102 93.3137 104.686 96 108 96H138V84Z', 'M90 90C90 86.6863 87.3137 84 84 84H54V96H84C87.3137 96 90 93.3137 90 90V90Z']
+          },
+          right: {
+            face: 'M144 54.4316C155.314 54.4316 160.971 54.4316 164.485 57.9464C168 61.4611 168 67.1179 168 78.4316V101.924C168 119.321 168 128.019 163.864 135.182C159.728 142.346 152.196 146.695 137.13 155.393L116.785 167.139C106.987 172.796 102.088 175.625 97.2865 174.338C92.4853 173.052 89.6569 168.153 84 158.355L34.3923 72.4316C29.7735 64.4316 27.4641 60.4316 29.1962 57.4316C30.9282 54.4316 35.547 54.4316 44.7846 54.4316H144Z',
+            marks: ['M156 84H126C122.686 84 120 86.6863 120 90V90C120 93.3137 122.686 96 126 96H156V84Z', 'M108 90C108 86.6863 105.314 84 102 84H72V96H102C105.314 96 108 93.3137 108 90V90Z']
+          }
+        }
+      },
+      waiting: {
+        label: 'Ждет',
+        fillId: 'purpleBlue',
+        blinkable: true,
+        looks: {
+          left: {
+            face: 'M108 33.6459C102.343 23.848 99.5147 18.949 94.7135 17.6625C89.9123 16.376 85.0133 19.2045 75.2154 24.8613L54.87 36.6078C39.8044 45.3059 32.2716 49.655 28.1358 56.8184C24 63.9818 24 72.6799 24 90.0762V113.569C24 124.883 24 130.54 27.5147 134.054C31.0294 137.569 36.6863 137.569 48 137.569H147.215C156.453 137.569 161.072 137.569 162.804 134.569C164.536 131.569 162.226 127.569 157.608 119.569L108 33.6459Z',
+            marks: ['M54 72C63.9411 72 72 80.0589 72 90C72 92.1039 71.638 94.1232 70.9746 96H37.0254C36.362 94.1232 36 92.1039 36 90C36 80.0589 44.0589 72 54 72Z', 'M102 72C111.941 72 120 80.0589 120 90C120 92.1039 119.638 94.1232 118.975 96H85.0254C84.362 94.1232 84 92.1039 84 90C84 80.0589 92.0589 72 102 72Z']
+          },
+          straight: {
+            face: 'M65.1428 30.6777C80.2022 21.9832 87.7319 17.6359 96 17.6359C104.268 17.6359 111.798 21.9832 126.857 30.6777L137.143 36.6161C152.202 45.3107 159.732 49.6579 163.866 56.8183C168 63.9788 168 72.6733 168 90.0623V113.57C168 124.884 168 130.541 164.485 134.055C160.971 137.57 155.314 137.57 144 137.57H48C36.6863 137.57 31.0294 137.57 27.5147 134.055C24 130.541 24 124.884 24 113.57V90.0623C24 72.6733 24 63.9788 28.1341 56.8183C32.2681 49.6579 39.7978 45.3107 54.8571 36.6161L65.1428 30.6777Z',
+            marks: ['M78 72C87.9411 72 96 80.0589 96 90C96 92.1039 95.638 94.1232 94.9746 96H61.0254C60.362 94.1232 60 92.1039 60 90C60 80.0589 68.0589 72 78 72Z', 'M126 72C135.941 72 144 80.0589 144 90C144 92.1039 143.638 94.1232 142.975 96H109.025C108.362 94.1232 108 92.1039 108 90C108 80.0589 116.059 72 126 72Z']
+          },
+          right: {
+            face: 'M84 33.6459C89.6569 23.848 92.4853 18.949 97.2865 17.6625C102.088 16.376 106.987 19.2045 116.785 24.8613L137.13 36.6078C152.196 45.3059 159.728 49.655 163.864 56.8184C168 63.9818 168 72.6799 168 90.0762V113.569C168 124.883 168 130.54 164.485 134.054C160.971 137.569 155.314 137.569 144 137.569H44.7846C35.547 137.569 30.9282 137.569 29.1962 134.569C27.4641 131.569 29.7735 127.569 34.3923 119.569L84 33.6459Z',
+            marks: ['M90 72C99.9411 72 108 80.0589 108 90C108 92.1039 107.638 94.1232 106.975 96H73.0254C72.362 94.1232 72 92.1039 72 90C72 80.0589 80.0589 72 90 72Z', 'M138 72C147.941 72 156 80.0589 156 90C156 92.1039 155.638 94.1232 154.975 96H121.025C120.362 94.1232 120 92.1039 120 90C120 80.0589 128.059 72 138 72Z']
+          }
+        }
+      },
+      welcome: {
+        label: 'Приветствует',
+        fillId: 'welcome',
+        blinkable: true,
+        looks: {
+          left: {
+            face: 'M126.87 30.6851C111.804 21.987 104.272 17.6379 96 17.6379C87.7284 17.6379 80.1956 21.987 65.13 30.6851L54.87 36.6087C39.8044 45.3069 32.2716 49.6559 28.1358 56.8193C24 63.9827 24 72.6809 24 90.0771V101.924C24 119.321 24 128.019 28.1358 135.182C32.2716 142.346 39.8044 146.695 54.87 155.393L64.8231 161.139C79.52 169.624 86.8685 173.867 94.0703 171.937C101.272 170.008 105.515 162.659 114 147.962L150 85.6084C158.485 70.9115 162.728 63.563 160.798 56.3612C158.868 49.1595 151.52 44.9168 136.823 36.4315L126.87 30.6851Z',
+            marks: ['M66 60C75.9411 60 84 68.0589 84 78C84 80.1039 83.638 82.1232 82.9746 84H49.0254C48.362 82.1232 48 80.1039 48 78C48 68.0589 56.0589 60 66 60Z', 'M114 60C123.941 60 132 68.0589 132 78C132 80.1039 131.638 82.1232 130.975 84H97.0254C96.362 82.1232 96 80.1039 96 78C96 68.0589 104.059 60 114 60Z']
+          },
+          straight: {
+            face: 'M65.13 30.6851C80.1956 21.987 87.7284 17.6379 96 17.6379C104.272 17.6379 111.804 21.987 126.87 30.6851L137.13 36.6087C152.196 45.3069 159.728 49.6559 163.864 56.8193C168 63.9827 168 72.6809 168 90.0771V113.57C168 124.884 168 130.541 164.485 134.055C160.971 137.57 155.314 137.57 144 137.57H48C36.6863 137.57 31.0294 137.57 27.5147 134.055C24 130.541 24 124.884 24 113.57V90.0771C24 72.6809 24 63.9827 28.1358 56.8193C32.2716 49.6559 39.8044 45.3069 54.87 36.6087L65.13 30.6851Z',
+            marks: ['M72 72C81.9411 72 90 80.0589 90 90C90 92.1039 89.638 94.1232 88.9746 96H55.0254C54.362 94.1232 54 92.1039 54 90C54 80.0589 62.0589 72 72 72Z', 'M120 72C129.941 72 138 80.0589 138 90C138 92.1039 137.638 94.1232 136.975 96H103.025C102.362 94.1232 102 92.1039 102 90C102 80.0589 110.059 72 120 72Z']
+          },
+          right: {
+            face: 'M65.13 30.6851C80.1956 21.987 87.7284 17.6379 96 17.6379C104.272 17.6379 111.804 21.987 126.87 30.6851L137.13 36.6087C152.196 45.3069 159.728 49.6559 163.864 56.8193C168 63.9827 168 72.6809 168 90.0771V101.924C168 119.321 168 128.019 163.864 135.182C159.728 142.346 152.196 146.695 137.13 155.393L127.177 161.139C112.48 169.624 105.132 173.867 97.9297 171.937C90.7279 170.008 86.4853 162.659 78 147.962L42 85.6084C33.5147 70.9115 29.2721 63.563 31.2018 56.3612C33.1315 49.1595 40.48 44.9168 55.1769 36.4315L65.13 30.6851Z',
+            marks: ['M78 60C87.9411 60 96 68.0589 96 78C96 80.1039 95.638 82.1232 94.9746 84H61.0254C60.362 82.1232 60 80.1039 60 78C60 68.0589 68.0589 60 78 60Z', 'M126 60C135.941 60 144 68.0589 144 78C144 80.1039 143.638 82.1232 142.975 84H109.025C108.362 82.1232 108 80.1039 108 78C108 68.0589 116.059 60 126 60Z']
+          }
+        }
+      },
+      warning: {
+        label: 'Предупреждает',
+        fillId: 'warning',
+        blinkable: false,
+        looks: {
+          left: {
+            face: 'M85.6077 30.8623C90.2265 22.8623 92.5359 18.8623 96 18.8623C99.4641 18.8623 101.774 22.8623 106.392 30.8623L157.608 119.57C162.226 127.57 164.536 131.57 162.804 134.57C161.072 137.57 156.453 137.57 147.215 137.57H44.7846C35.547 137.57 30.9282 137.57 29.1962 134.57C27.4641 131.57 29.7735 127.57 34.3923 119.57L85.6077 30.8623Z',
+            marks: ['M84 58.3193C84 52.6201 88.6201 48 94.3193 48C101.175 48 106.125 54.5621 104.242 61.1543L97.4175 85.0389C96.5785 87.9754 93.8944 90 90.8403 90C87.0625 90 84 86.9375 84 83.1597V58.3193Z', 'M86 102C92.6274 102 98 107.373 98 114C98 120.627 92.6274 126 86 126C79.3726 126 74 120.627 74 114C74 107.373 79.3726 102 86 102Z']
+          },
+          straight: {
+            face: 'M85.6077 30.8623C90.2265 22.8623 92.5359 18.8623 96 18.8623C99.4641 18.8623 101.774 22.8623 106.392 30.8623L157.608 119.57C162.226 127.57 164.536 131.57 162.804 134.57C161.072 137.57 156.453 137.57 147.215 137.57H44.7846C35.547 137.57 30.9282 137.57 29.1962 134.57C27.4641 131.57 29.7735 127.57 34.3923 119.57L85.6077 30.8623Z',
+            marks: ['M85.6971 59.8794C84.8014 53.6095 89.6665 48 96 48C102.334 48 107.199 53.6095 106.303 59.8794L102.849 84.0603C102.362 87.4685 99.4428 90 96 90C92.5572 90 89.6384 87.4685 89.1515 84.0603L85.6971 59.8794Z', 'M96 102C102.627 102 108 107.373 108 114C108 120.627 102.627 126 96 126C89.3726 126 84 120.627 84 114C84 107.373 89.3726 102 96 102Z']
+          },
+          right: {
+            face: 'M85.6077 30.8623C90.2265 22.8623 92.5359 18.8623 96 18.8623C99.4641 18.8623 101.774 22.8623 106.392 30.8623L157.608 119.57C162.226 127.57 164.536 131.57 162.804 134.57C161.072 137.57 156.453 137.57 147.215 137.57H44.7846C35.547 137.57 30.9282 137.57 29.1962 134.57C27.4641 131.57 29.7735 127.57 34.3923 119.57L85.6077 30.8623Z',
+            marks: ['M87.7584 61.1543C85.8749 54.5621 90.8247 48 97.6807 48C103.38 48 108 52.6201 108 58.3193V83.1597C108 86.9375 104.937 90 101.16 90C98.1056 90 95.4215 87.9754 94.5825 85.0389L87.7584 61.1543Z', 'M104 102C110.627 102 116 107.373 116 114C116 120.627 110.627 126 104 126C97.3726 126 92 120.627 92 114C92 107.373 97.3726 102 104 102Z']
+          }
+        }
+      },
+      sorry: {
+        label: 'Извиняется',
+        fillId: 'sorry',
+        blinkable: true,
+        looks: {
+          left: {
+            face: 'M75.2154 24.8623C85.0134 19.2055 89.9123 16.377 94.7135 17.6635C99.5147 18.95 102.343 23.849 108 33.6469L156 116.785C161.657 126.583 164.485 131.482 163.199 136.284C161.912 141.085 157.013 143.913 147.215 149.57L126.86 161.322C111.799 170.017 104.269 174.365 96 174.365C87.7311 174.365 80.2007 170.017 65.14 161.322L54.86 155.387C39.7993 146.692 32.2689 142.344 28.1345 135.183C24 128.022 24 119.327 24 101.936V90.0656C24 72.675 24 63.9796 28.1345 56.8186C32.2689 49.6575 39.7993 45.3098 54.86 36.6145L75.2154 24.8623Z',
+            marks: ['M118.975 96C119.638 97.8768 120 99.8961 120 102C120 111.941 111.941 120 102 120C92.0589 120 84 111.941 84 102C84 99.8961 84.362 97.8768 85.0254 96H118.975Z', 'M70.9746 96C71.638 97.8768 72 99.8961 72 102C72 111.941 63.9411 120 54 120C44.0589 120 36 111.941 36 102C36 99.8961 36.362 97.8768 37.0254 96H70.9746Z']
+          },
+          straight: {
+            face: 'M144 54.4316C155.314 54.4316 160.971 54.4316 164.485 57.9464C168 61.4611 168 67.1179 168 78.4316V101.939C168 119.328 168 128.023 163.866 135.183C159.732 142.344 152.202 146.691 137.143 155.385L126.857 161.324C111.798 170.018 104.268 174.366 96 174.366C87.7319 174.366 80.2022 170.018 65.1429 161.324L54.8572 155.385C39.7978 146.691 32.2681 142.344 28.1341 135.183C24 128.023 24 119.328 24 101.939V78.4316C24 67.1179 24 61.4611 27.5147 57.9464C31.0294 54.4316 36.6863 54.4316 48 54.4316H144Z',
+            marks: ['M136.975 96C137.638 97.8768 138 99.8961 138 102C138 111.941 129.941 120 120 120C110.059 120 102 111.941 102 102C102 99.8961 102.362 97.8768 103.025 96H136.975Z', 'M88.9746 96C89.638 97.8768 90 99.8961 90 102C90 111.941 81.9411 120 72 120C62.0589 120 54 111.941 54 102C54 99.8961 54.362 97.8768 55.0254 96H88.9746Z']
+          },
+          right: {
+            face: 'M116.785 24.8623C106.987 19.2055 102.088 16.377 97.2865 17.6635C92.4853 18.95 89.6568 23.849 84 33.6469L36 116.785C30.3431 126.583 27.5147 131.482 28.8012 136.284C30.0877 141.085 34.9866 143.913 44.7846 149.57L65.14 161.322C80.2007 170.017 87.7311 174.365 96 174.365C104.269 174.365 111.799 170.017 126.86 161.322L137.14 155.387C152.201 146.692 159.731 142.344 163.866 135.183C168 128.022 168 119.327 168 101.936V90.0656C168 72.675 168 63.9796 163.866 56.8186C159.731 49.6575 152.201 45.3098 137.14 36.6145L116.785 24.8623Z',
+            marks: ['M154.975 96C155.638 97.8768 156 99.8961 156 102C156 111.941 147.941 120 138 120C128.059 120 120 111.941 120 102C120 99.8961 120.362 97.8768 121.025 96H154.975Z', 'M106.975 96C107.638 97.8768 108 99.8961 108 102C108 111.941 99.9411 120 90 120C80.0589 120 72 111.941 72 102C72 99.8961 72.362 97.8768 73.0254 96H106.975Z']
+          }
+        }
+      },
+      working: {
+        label: 'Работает',
+        fillId: 'purpleBlue',
+        blinkable: true,
+        looks: {
+          left: {
+            face: 'M75.215 24.8623C85.013 19.2055 89.912 16.377 94.714 17.6635C99.515 18.95 102.343 23.849 108 33.6469L156 116.785C161.657 126.583 164.485 131.482 163.199 136.284C161.912 141.085 157.013 143.913 147.215 149.57L126.86 161.322C111.799 170.017 104.269 174.365 96 174.365C87.731 174.365 80.201 170.017 65.14 161.322L54.86 155.387C39.799 146.692 32.269 142.344 28.134 135.183C24 128.022 24 119.327 24 101.936V90.066C24 72.675 24 63.9796 28.134 56.8186C32.269 49.6575 39.799 45.3098 54.86 36.6145L75.215 24.8623Z',
+            marks: ['M48 120C48 113.373 53.373 108 60 108V108C66.627 108 72 113.373 72 120V132H48V120Z', 'M96 120C96 113.373 101.373 108 108 108V108C114.627 108 120 113.373 120 120V132H96V120Z']
+          },
+          straight: {
+            face: 'M85.608 30.8623C90.227 22.8623 92.536 18.8623 96 18.8623C99.464 18.8623 101.774 22.8623 106.392 30.8623L156 116.785C161.657 126.583 164.485 131.482 163.199 136.284C161.912 141.085 157.013 143.913 147.215 149.57L126.86 161.322C111.799 170.017 104.269 174.365 96 174.365C87.731 174.365 80.201 170.017 65.14 161.322L44.785 149.57C34.987 143.913 30.088 141.085 28.801 136.284C27.515 131.482 30.343 126.583 36 116.785L85.608 30.8623Z',
+            marks: ['M60 120C60 113.373 65.373 108 72 108V108C78.627 108 84 113.373 84 120V132H60V120Z', 'M108 120C108 113.373 113.373 108 120 108V108C126.627 108 132 113.373 132 120V132H108V120Z']
+          },
+          right: {
+            face: 'M116.785 24.8623C106.987 19.2055 102.088 16.377 97.286 17.6635C92.485 18.95 89.657 23.849 84 33.6469L36 116.785C30.3431 126.583 27.5147 131.482 28.8012 136.284C30.0877 141.085 34.9866 143.913 44.7846 149.57L65.14 161.322C80.201 170.017 87.731 174.365 96 174.365C104.269 174.365 111.799 170.017 126.86 161.322L137.14 155.387C152.201 146.692 159.731 142.344 163.866 135.183C168 128.022 168 119.327 168 101.936V90.066C168 72.675 168 63.9796 163.866 56.8186C159.731 49.6575 152.201 45.3098 137.14 36.6145L116.785 24.8623Z',
+            marks: ['M72 120C72 113.373 77.373 108 84 108V108C90.627 108 96 113.373 96 120V132H72V120Z', 'M120 120C120 113.373 125.373 108 132 108V108C138.627 108 144 113.373 144 120V132H120V120Z']
+          }
+        }
+      }
+    };
+
+    const character = document.querySelector('.character');
+    const spark = document.querySelector('.spark');
+    const logo = document.querySelector('.logo');
+    const hexLayers = [document.querySelector('#hex-a'), document.querySelector('#hex-b')];
+    const facePath = document.querySelector('#face-path');
+    const markPaths = [document.querySelector('#mark-a'), document.querySelector('#mark-b')];
+    const emotionGrid = document.querySelector('#emotion-grid');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const emotionOrder = ['sleep', 'waiting', 'welcome', 'warning', 'sorry', 'working'];
+    const lookNames = ['left', 'straight', 'right'];
+    const lookToValue = { left: -1, straight: 0, right: 1 };
+
+    let selectedEmotion = 'waiting';
+    let targetLookPosition = 0;
+    let currentLookPosition = 0;
+    let currentFacePoints = null;
+    let currentMarkPoints = [null, null];
+    let frameId = 0;
+    let activeHexIndex = 0;
+    let activeFillId = RAW_EMOTIONS[selectedEmotion].fillId;
+
+    const clonePoints = (points) => points.map(([x, y]) => [x, y]);
+
+    const samplePath = (d, samples = 84) => {
+      const sampler = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      sampler.setAttribute('d', d);
+      sampler.setAttribute('visibility', 'hidden');
+      logo.appendChild(sampler);
+
+      const length = sampler.getTotalLength();
+      const points = [];
+      for (let index = 0; index < samples; index += 1) {
+        const point = sampler.getPointAtLength((index / samples) * length);
+        points.push([point.x, point.y]);
+      }
+
+      sampler.remove();
+      return points;
+    };
+
+    const toPolygonPath = (points) => {
+      const [first, ...rest] = points;
+      const path = [`M${first[0].toFixed(3)} ${first[1].toFixed(3)}`];
+      for (const [x, y] of rest) {
+        path.push(`L${x.toFixed(3)} ${y.toFixed(3)}`);
+      }
+      path.push('Z');
+      return path.join('');
+    };
+
+    const lerpPoints = (fromPoints, toPoints, amount) =>
+      fromPoints.map(([fx, fy], index) => [
+        fx + (toPoints[index][0] - fx) * amount,
+        fy + (toPoints[index][1] - fy) * amount
+      ]);
+
+    const distanceSum = (fromPoints, toPoints) => {
+      let total = 0;
+      for (let index = 0; index < fromPoints.length; index += 1) {
+        const [fx, fy] = fromPoints[index];
+        const [tx, ty] = toPoints[index];
+        total += Math.hypot(tx - fx, ty - fy);
+      }
+      return total;
+    };
+
+    const rotatePoints = (points, shift) => {
+      const size = points.length;
+      return points.map((_, index) => points[(index + shift + size) % size]);
+    };
+
+    const reversePoints = (points) => {
+      const [first, ...rest] = points;
+      return [first, ...rest.reverse()];
+    };
+
+    const alignPoints = (referencePoints, candidatePoints) => {
+      let best = candidatePoints;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      const variants = [candidatePoints, reversePoints(candidatePoints)];
+
+      for (const variant of variants) {
+        for (let shift = 0; shift < variant.length; shift += 1) {
+          const rotated = rotatePoints(variant, shift);
+          const total = distanceSum(referencePoints, rotated);
+          if (total < bestDistance) {
+            bestDistance = total;
+            best = rotated;
+          }
+        }
+      }
+
+      return clonePoints(best);
+    };
+
+    const centroid = (points) => {
+      let x = 0;
+      let y = 0;
+      for (const [px, py] of points) {
+        x += px;
+        y += py;
+      }
+      return [x / points.length, y / points.length];
+    };
+
+    const anchorPoints = (points) => {
+      const [cx, cy] = centroid(points);
+      let bestIndex = 0;
+      let bestScore = Number.POSITIVE_INFINITY;
+
+      for (let index = 0; index < points.length; index += 1) {
+        const [px, py] = points[index];
+        const angle = Math.atan2(py - cy, px - cx);
+        const angleDistance = Math.abs(angle + Math.PI / 2);
+        const radiusDistance = Math.hypot(px - cx, py - cy);
+        const score = angleDistance * 1000 + radiusDistance;
+
+        if (score < bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
+      }
+
+      return rotatePoints(points, bestIndex);
+    };
+
+    const settlePoints = (currentPoints, targetPoints, factor = 0.2, epsilon = 0.02) => {
+      let settled = true;
+      const nextPoints = currentPoints.map(([x, y], index) => {
+        const [tx, ty] = targetPoints[index];
+        const nextX = x + (tx - x) * factor;
+        const nextY = y + (ty - y) * factor;
+        if (Math.abs(tx - nextX) > epsilon || Math.abs(ty - nextY) > epsilon) {
+          settled = false;
+        }
+        return [nextX, nextY];
+      });
+      return [settled ? clonePoints(targetPoints) : nextPoints, settled];
+    };
+
+    const createEmotionSamples = () => {
+      const result = {};
+      for (const [emotionKey, emotion] of Object.entries(RAW_EMOTIONS)) {
+        const sampledLooks = {};
+        for (const lookName of lookNames) {
+          const look = emotion.looks[lookName];
+          const marks = [look.marks[0] || EMPTY_PATH, look.marks[1] || EMPTY_PATH];
+          sampledLooks[lookName] = {
+            face: anchorPoints(samplePath(look.face, 96)),
+            marks: [
+              anchorPoints(samplePath(marks[0], 64)),
+              anchorPoints(samplePath(marks[1], 64))
+            ],
+            previewMarks: marks
+          };
+        }
+
+        const faceReference = sampledLooks.straight.face;
+        const markReferences = sampledLooks.straight.marks;
+
+        for (const lookName of ['left', 'right']) {
+          sampledLooks[lookName].face = alignPoints(faceReference, sampledLooks[lookName].face);
+          sampledLooks[lookName].marks = sampledLooks[lookName].marks.map((markPoints, index) =>
+            alignPoints(markReferences[index], markPoints)
+          );
+        }
+
+        result[emotionKey] = {
+          label: emotion.label,
+          fillId: emotion.fillId,
+          blinkable: emotion.blinkable,
+          looks: sampledLooks
+        };
+      }
+      return result;
+    };
+
+    const EMOTIONS = createEmotionSamples();
+
+    const setHexFill = (fillId, immediate = false) => {
+      if (fillId === activeFillId && !immediate) {
+        return;
+      }
+      const incoming = immediate ? 0 : 1 - activeHexIndex;
+      hexLayers[incoming].setAttribute('fill', FILL_PRESETS[fillId].fill);
+      if (immediate) {
+        hexLayers[0].style.opacity = '1';
+        hexLayers[1].style.opacity = '0';
+        activeHexIndex = 0;
+      } else {
+        hexLayers[incoming].style.opacity = '1';
+        hexLayers[activeHexIndex].style.opacity = '0';
+        activeHexIndex = incoming;
+      }
+      activeFillId = fillId;
+      spark.style.setProperty('--glow', FILL_PRESETS[fillId].glow);
+    };
+
+    const desiredState = (emotionKey, lookPosition) => {
+      const emotion = EMOTIONS[emotionKey];
+      if (lookPosition <= 0) {
+        const amount = lookPosition + 1;
+        return {
+          fillId: emotion.fillId,
+          blinkable: emotion.blinkable,
+          face: lerpPoints(emotion.looks.left.face, emotion.looks.straight.face, amount),
+          marks: [
+            lerpPoints(emotion.looks.left.marks[0], emotion.looks.straight.marks[0], amount),
+            lerpPoints(emotion.looks.left.marks[1], emotion.looks.straight.marks[1], amount)
+          ]
+        };
+      }
+
+      return {
+        fillId: emotion.fillId,
+        blinkable: emotion.blinkable,
+        face: lerpPoints(emotion.looks.straight.face, emotion.looks.right.face, lookPosition),
+        marks: [
+          lerpPoints(emotion.looks.straight.marks[0], emotion.looks.right.marks[0], lookPosition),
+          lerpPoints(emotion.looks.straight.marks[1], emotion.looks.right.marks[1], lookPosition)
+        ]
+      };
+    };
+
+    const setLookDataset = () => {
+      if (currentLookPosition < -0.34) {
+        character.dataset.look = 'left';
+      } else if (currentLookPosition > 0.34) {
+        character.dataset.look = 'right';
+      } else {
+        character.dataset.look = 'straight';
+      }
+    };
+
+    const applyGeometry = (state, immediate = false) => {
+      setHexFill(state.fillId, immediate);
+
+      if (immediate || !currentFacePoints) {
+        currentFacePoints = clonePoints(state.face);
+        currentMarkPoints = [clonePoints(state.marks[0]), clonePoints(state.marks[1])];
+        facePath.setAttribute('d', toPolygonPath(currentFacePoints));
+        markPaths[0].setAttribute('d', toPolygonPath(currentMarkPoints[0]));
+        markPaths[1].setAttribute('d', toPolygonPath(currentMarkPoints[1]));
+        return true;
+      }
+
+      const faceTarget = alignPoints(currentFacePoints, state.face);
+      const markTargets = [
+        alignPoints(currentMarkPoints[0], state.marks[0]),
+        alignPoints(currentMarkPoints[1], state.marks[1])
+      ];
+
+      const [nextFace, faceSettled] = settlePoints(currentFacePoints, faceTarget);
+      const [nextMarkA, markASettled] = settlePoints(currentMarkPoints[0], markTargets[0]);
+      const [nextMarkB, markBSettled] = settlePoints(currentMarkPoints[1], markTargets[1]);
+
+      currentFacePoints = nextFace;
+      currentMarkPoints = [nextMarkA, nextMarkB];
+
+      facePath.setAttribute('d', toPolygonPath(currentFacePoints));
+      markPaths[0].setAttribute('d', toPolygonPath(currentMarkPoints[0]));
+      markPaths[1].setAttribute('d', toPolygonPath(currentMarkPoints[1]));
+
+      return faceSettled && markASettled && markBSettled;
+    };
+
+    const requestFrame = () => {
+      if (!frameId) {
+        frameId = window.requestAnimationFrame(step);
+      }
+    };
+
+    const step = () => {
+      frameId = 0;
+      const motionReduced = reducedMotion.matches;
+      const lookFactor = motionReduced ? 1 : 0.18;
+      const delta = targetLookPosition - currentLookPosition;
+
+      if (Math.abs(delta) > 0.001) {
+        currentLookPosition += delta * lookFactor;
+      } else {
+        currentLookPosition = targetLookPosition;
+      }
+
+      const settled = applyGeometry(desiredState(selectedEmotion, currentLookPosition), motionReduced);
+      setLookDataset();
+
+      if (!settled || Math.abs(targetLookPosition - currentLookPosition) > 0.001) {
+        requestFrame();
+      }
+    };
+
+    const selectEmotion = (emotionKey) => {
+      if (emotionKey === selectedEmotion) {
+        return;
+      }
+      selectedEmotion = emotionKey;
+      syncSelector();
+      character.dataset.emotion = emotionKey;
+      character.style.setProperty('--blink', '1');
+      requestFrame();
+    };
+
+    const syncSelector = () => {
+      for (const button of emotionGrid.querySelectorAll('.emotion-chip')) {
+        button.setAttribute('aria-pressed', String(button.dataset.emotion === selectedEmotion));
+      }
+    };
+
+    const previewSvg = (emotionKey) => {
+      const emotion = RAW_EMOTIONS[emotionKey];
+      const fillPreset = FILL_PRESETS[emotion.fillId];
+      const look = emotion.looks.straight;
+      const previewId = `preview-${emotionKey}`;
+      return `
+        <svg viewBox="0 0 192 192" aria-hidden="true">
+          <defs>
+            <linearGradient id="${previewId}" x1="54.8282" y1="169.838" x2="137.25" y2="23.9999" gradientUnits="userSpaceOnUse">
+              <stop stop-color="${fillPreset.preview.from}"></stop>
+              <stop offset="1" stop-color="${fillPreset.preview.to}"></stop>
+            </linearGradient>
+          </defs>
+          <path fill="url(#${previewId})" d="${HEX_PATH}"></path>
+          <path fill="#0E1624" d="${look.face}"></path>
+          ${look.marks.map((mark) => `<path fill="white" d="${mark}"></path>`).join('')}
+        </svg>
+      `;
+    };
+
+    const renderSelector = () => {
+      emotionGrid.innerHTML = '';
+      for (const emotionKey of emotionOrder) {
+        const emotion = RAW_EMOTIONS[emotionKey];
+        const fillPreset = FILL_PRESETS[emotion.fillId];
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'emotion-chip';
+        button.dataset.emotion = emotionKey;
+        button.setAttribute('aria-pressed', String(emotionKey === selectedEmotion));
+        button.style.setProperty('--chip-border', fillPreset.chipBorder);
+        button.style.setProperty('--chip-bg', fillPreset.chipBg);
+        button.style.setProperty('--chip-focus', fillPreset.chipFocus);
+        button.innerHTML = `
+          <span class="emotion-chip__icon">${previewSvg(emotionKey)}</span>
+          <span class="emotion-chip__label">${emotion.label}</span>
+        `;
+        button.addEventListener('click', () => selectEmotion(emotionKey));
+        emotionGrid.appendChild(button);
+      }
+    };
+
+    const pointerToLook = (clientX, bounds) => {
+      const centerX = bounds.left + bounds.width / 2;
+      return Math.max(-1, Math.min(1, (clientX - centerX) / (bounds.width * 0.48)));
+    };
+
+    window.addEventListener('pointermove', (event) => {
+      const bounds = character.getBoundingClientRect();
+      const dx = pointerToLook(event.clientX, bounds);
+      const centerY = bounds.top + bounds.height / 2;
+      const dy = Math.max(-1, Math.min(1, (event.clientY - centerY) / (bounds.height * 0.48)));
+      targetLookPosition = dx;
+      character.style.setProperty('--tilt-y', `${(dx * 3.4).toFixed(2)}deg`);
+      character.style.setProperty('--tilt-x', `${(-dy * 3.4).toFixed(2)}deg`);
+      requestFrame();
+    }, { passive: true });
+
+    window.addEventListener('pointerleave', () => {
+      targetLookPosition = 0;
+      character.style.setProperty('--tilt-y', '0deg');
+      character.style.setProperty('--tilt-x', '0deg');
+      requestFrame();
+    });
+
+    const blink = () => {
+      if (!RAW_EMOTIONS[selectedEmotion].blinkable || reducedMotion.matches) {
+        character.style.setProperty('--blink', '1');
+        return;
+      }
+      character.style.setProperty('--blink', '.08');
+      window.setTimeout(() => {
+        character.style.setProperty('--blink', '1');
+      }, 120);
+    };
+
+    const blinkLoop = () => {
+      blink();
+      window.setTimeout(blinkLoop, 1900 + Math.random() * 2600);
+    };
+
+    renderSelector();
+    syncSelector();
+    character.dataset.emotion = selectedEmotion;
+    applyGeometry(desiredState(selectedEmotion, currentLookPosition), true);
+    setLookDataset();
+    window.setTimeout(blinkLoop, 1400);
+  </script>
+</body>
+</html>
